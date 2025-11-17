@@ -1,10 +1,12 @@
 import asyncio
+import os
+import sys
 
 from sqlalchemy import create_engine, URL, text
 from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.config import settings
+from ..config import settings
 
 
 engine_async = create_async_engine(

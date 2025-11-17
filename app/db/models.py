@@ -1,4 +1,6 @@
 import asyncio
+import os
+import sys
 from datetime import datetime
 from typing import Annotated
 
@@ -6,7 +8,7 @@ from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, tex
 from sqlalchemy.orm import Mapped, MappedColumn
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.db.database import Base, engine
+from .database import Base, engine
 
 id_primary_key = Annotated[int, MappedColumn(primary_key=True)]
 created_at = Annotated[datetime, MappedColumn(server_default=text("TIMEZONE('utc', now())"))]

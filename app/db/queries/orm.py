@@ -1,12 +1,16 @@
-import asyncio
+import os
+import sys
+from pprint import pprint
+
 from typing import Union
 
 from sqlalchemy import text, insert, select, update, delete
 from sqlalchemy.ext.asyncio import async_session
+from sqlalchemy.exc import ProgrammingError
 
-from app.db.database import session_db, session_db_async, Base, engine_async, engine
-from app.db.models import PartsLinksTable, AudiPartsLightTable, AudiPartsFullTable, create_tables
-from app.db.dataclases import (
+from ..database import session_db, session_db_async, Base, engine_async, engine
+from ..models import PartsLinksTable, AudiPartsLightTable, AudiPartsFullTable, create_tables
+from ..dataclases import (
     PartsLinksObject, PartsLinksDTO,
     AudiPartsLightObject, AudiPartsLightDTO,
     AudiPartsFullObject, AudiPartsFullDTO
@@ -227,12 +231,12 @@ class AudiPartsFullQueriesAsync():
 
 # Добавить ссылки в бд из текстового файла
 def add_links_from_file() -> None:
-    with open("../../parsed_files/parts_links.txt", "r") as f:
+    create_tables()
+    with open("app/parsed_files/parts_links.txt", "r") as f:
         list_of_links = [PartsLinksObject(link=i.strip(), is_parsed=0) for i in f.readlines()]
         PartsLinksQueries.insert_value(list_of_links)
 
 
 if __name__ == '__main__':
-    create_tables()
     add_links_from_file()
     pass

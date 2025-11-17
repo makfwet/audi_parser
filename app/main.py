@@ -1,4 +1,6 @@
 import asyncio
+import os
+import sys
 from json import dumps, loads
 from pathlib import Path
 
@@ -6,9 +8,10 @@ from loguru import logger
 from playwright.async_api import async_playwright, Page, expect, BrowserContext, TimeoutError
 
 from app.config import Settings
-from app.db.dataclases import AudiPartsFullObject, AudiPartsLightObject, PartsLinksDTO
-from app.db.queries.orm import AudiPartsLightQueriesAsync, AudiPartsFullQueriesAsync, PartsLinksQueriesAsync
-
+from .db.dataclases import AudiPartsFullObject, AudiPartsLightObject, PartsLinksDTO
+from .db.queries.core import check_table_exists
+from .db.queries.orm import AudiPartsLightQueriesAsync, AudiPartsFullQueriesAsync, PartsLinksQueriesAsync, \
+    add_links_from_file
 
 logger.add(
     "logs/parsing_logs.log",
@@ -101,12 +104,26 @@ async def main():
         context = await browser.new_context()
         await context.add_cookies(loads(Path("cookies.json").read_text()))
 
-        list_of_links_1 = await PartsLinksQueriesAsync.get_value(is_parsed=1)
+        for i in range(5):
+            if not check_table_exists():
+                logger.warning(f"[Main] - Таблицы parts_links не существует! Запускаю скрипт для создания")
+                add_links_from_file()
+            else:
+                logger.info(f"[Main] - Таблица parts_links найдена")
+                break
+
         list_of_links_0 = await PartsLinksQueriesAsync.get_value(is_parsed=0)
+        list_of_links_1 = await PartsLinksQueriesAsync.get_value(is_parsed=1)
         list_of_links = list_of_links_1 + list_of_links_0
+
+        if not list_of_links:
+            logger.warning(f"[Main] - Не удалось найти ссылки со статусом 0, 1. Завершаю работу")
+            exit()
+
         divided_lists = split_into_parts(list_of_links, pages_amount)
 
         logger.info(
+            f"[Main] - "
             f"Новых - {len(list_of_links_0)} | "
             f"Старых - {len(list_of_links_1)} | "
             f"Всего - {len(list_of_links)} | "

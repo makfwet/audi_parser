@@ -1,9 +1,10 @@
+import os
+import sys
 from typing import Union
 
-from sqlalchemy import text, select, insert, delete
-
-from app.db.database import session_db, session_db_async, Base, engine_async, engine
-from app.db.models import AudiPartsLightTable
+from sqlalchemy import text, select, insert, delete, inspect
+from ..database import session_db, session_db_async, Base, engine_async, engine
+from ..models import AudiPartsLightTable
 
 
 
@@ -34,6 +35,12 @@ async def aio_insert_values(values_to_insert: Union[list[str], tuple[str], str])
 
         if flag:
             await session.commit()
+
+# Проверить существование таблицы parts_links
+def check_table_exists():
+    with engine.connect() as conn:
+        tables = inspect(conn).get_table_names()
+        return "parts_links" in tables
 
 
 if __name__ == '__main__':
